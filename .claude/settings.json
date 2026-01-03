@@ -1,0 +1,63 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Grep(*)",
+      "Glob(*)",
+      "LS(*)",
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(npm test*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run build*)",
+      "Bash(pytest*)",
+      "Bash(python -m pytest*)",
+      "Bash(cargo test*)",
+      "Bash(cargo check*)",
+      "Bash(go test*)"
+    ],
+    "ask": [
+      "Write(*)",
+      "Edit(*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(npm install*)",
+      "Bash(pip install*)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(rm -rf*)",
+      "Bash(sudo*)",
+      "Bash(*prod*)",
+      "Bash(*production*)"
+    ]
+  },
+  "additionalDirectories": [],
+  "defaultMode": "default",
+  "hooks": {
+    "PreToolExecution": {
+      "Bash": {
+        "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] EXEC: $TOOL_INPUT\" >> .claude/state/audit.log"
+      },
+      "Write": {
+        "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] WRITE: $TOOL_INPUT\" >> .claude/state/audit.log"
+      }
+    },
+    "PostToolExecution": {
+      "Bash": {
+        "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] DONE: exit_code=$EXIT_CODE\" >> .claude/state/audit.log"
+      }
+    }
+  },
+  "model": {
+    "default": "sonnet",
+    "subagent": "sonnet"
+  },
+  "budget": {
+    "maxTokensPerSession": 500000,
+    "maxToolCallsPerTask": 100,
+    "maxWallTimeMinutes": 30
+  }
+}
+
