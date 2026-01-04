@@ -6,14 +6,90 @@
 
 ---
 
-## ✨ 特性
+## 📖 简介
 
-- **🎯 多智能体协作**：6 个专业化子智能体，各司其职
-- **📊 实时 Dashboard**：可视化任务进度、DAG、智能体状态
-- **🔄 DAG 任务建模**：复杂任务分解为有向无环图，支持并行执行
-- **✅ 质量内建**：Pre-commit 和 Pre-merge 双重质量门
-- **🔐 安全控制**：最小权限原则，高风险操作需审批
-- **📦 模块化设计**：易于扩展和定制
+这是一个为 **Cursor** 和 **Claude Code** 设计的**多智能体软件工程框架**。它通过将复杂的开发任务分解为**规划、检索、实现、验证、审查**等明确的阶段，并指派给 6 个专业化的子智能体协作完成，从而实现高质量的自动化开发。
+
+与普通的 AI 聊天不同，本框架引入了 **控制面 (Control Plane)** 概念，通过 **DAG 任务图**、**实时 Dashboard** 和 **严格的质量门 (Quality Gates)**，让 AI 真的"乖乖听话"，产出可用的工程代码。
+
+---
+
+## ✨ 核心特性
+
+- **🎯 多智能体协作**：6 个专业化子智能体 (Supervisor, Architect, Implementer 等) 各司其职。
+- **📊 实时 Dashboard**：`DASHBOARD.md` 实时展示任务进度、DAG 图、资源消耗。
+- **🔄 可控工作流**：支持 `/plan` (规划) -> `/swe` (执行) 分步操作，避免 AI "乱跑"。
+- **✅ 质量内建**：Pre-commit (Lint/Test) 和 Pre-merge (Review) 双重质量门。
+- **🔐 安全第一**：默认最小权限，写操作需确认，高风险操作需审批。
+
+---
+
+## 🚀 快速开始 (Step-by-Step 指南)
+
+跟随以下步骤，你可以在 5 分钟内上手本框架。
+
+### 第一步：安装与初始化
+
+1. **复制文件**：将本项目的所有文件（`.claude/`, `CLAUDE.md`, `DASHBOARD.md` 等）复制到你的项目根目录。
+2. **配置 Cursor 规则**：
+   在你的项目根目录创建或更新 `.cursorrules` 文件，填入以下内容以激活 "Main Agent" 模式：
+   
+   ```markdown
+   # Role: Cursor Main Agent (Control Plane)
+   你不是一个简单的代码补全工具，你是 Multi-Agent SWE Framework 的主控节点。
+   
+   ## 核心职责
+   1. **指挥官**：通过调用子智能体（.claude/agents/*.md）来完成任务。
+   2. **状态管理者**：负责维护 DASHBOARD.md 的实时更新。
+   3. **指令响应**：
+      - /status -> 读取 DASHBOARD.md
+      - /plan <任务> -> 调用 Supervisor 生成 DAG
+      - /swe <任务> -> 执行完整开发流程
+   ```
+
+### 第二步：检查状态
+
+在 Cursor 的 Chat 面板中输入：
+
+```bash
+/status
+```
+
+如果 Cursor 返回了 `DASHBOARD.md` 的当前状态面板（包含 Session Info, Agent Status 等），说明框架已成功加载。
+
+### 第三步：规划任务 (Plan)
+
+不要急着写代码，先让 AI 思考。输入：
+
+```bash
+/plan 开发一个简单的贪吃蛇游戏网页，包含计分板和开始按钮
+```
+
+**发生了什么？**
+1. **Supervisor** 智能体被唤醒。
+2. 它会分析需求，生成一个包含 **架构设计 -> 核心逻辑 -> UI 实现 -> 测试** 的 **DAG (有向无环图)**。
+3. 它会把这个计划写入 `DASHBOARD.md`。
+4. 你可以检查计划，确认无误后再继续。
+
+### 第四步：执行任务 (Execute)
+
+确认计划后，输入：
+
+```bash
+/swe 确认执行贪吃蛇开发计划
+```
+
+**发生了什么？**
+1. **Architect** 设计数据结构。
+2. **Implementer** 开始编写 HTML/CSS/JS。
+3. **Tester** 在代码完成后进行逻辑验证。
+4. **DASHBOARD.md** 会实时更新每个子任务的状态 (Pending -> Running -> Completed)。
+
+### 第五步：查看结果与验收
+
+1. 观察 `DASHBOARD.md` 变为 **✅ COMPLETED** 状态。
+2. 查看生成的文件（例如 `index.html`）。
+3. 如果有 Bug，直接输入：`/swe 修复贪吃蛇撞墙判定不准的问题`。
 
 ---
 
@@ -44,187 +120,62 @@
 
 ---
 
+## 🤖 子智能体 (Agents)
+
+| 智能体 | 角色 | 职责 | 核心能力 |
+|--------|------|------|----------|
+| **Supervisor** | PM / 组长 | 任务协调、DAG 生成、进度监控 | 规划、调度 |
+| **Repo Scout** | 探路者 | 代码库搜索、依赖分析 | 全局搜索、引用查找 |
+| **Architect** | 架构师 | 技术选型、接口设计、风险评估 | 系统设计、文档编写 |
+| **Implementer**| 工程师 | 代码编写、Bug 修复 | 编码、重构 |
+| **Tester** | 测试工程师 | 测试用例编写、验证执行 | 单元测试、集成测试 |
+| **Reviewer** | 审查员 | 代码审查、规范检查 | Code Review、安全审计 |
+
+---
+
 ## 📁 项目结构
 
 ```
 .
-├── CLAUDE.md                    # 📖 主记忆文件
-├── DASHBOARD.md                 # 📊 实时状态仪表板
-├── README.md                    # 📋 项目说明
+├── CLAUDE.md                    # 📖 项目记忆 (规范、常用命令)
+├── DASHBOARD.md                 # 📊 实时仪表板 (不要手动修改，由 Agent 维护)
+├── .cursorrules                 # 🧠 Cursor 核心指令集
 ├── .claude/
-│   ├── settings.json           # ⚙️ 权限与配置
-│   ├── agents/                 # 🤖 子智能体定义
-│   │   ├── supervisor.md       #    监督者
-│   │   ├── repo-scout.md       #    代码侦察
-│   │   ├── architect.md        #    架构师
-│   │   ├── implementer.md      #    实现者
-│   │   ├── tester.md           #    测试者
-│   │   └── reviewer.md         #    审查者
-│   ├── skills/                 # 🎯 技能定义
-│   │   ├── dag-planning/       #    DAG 规划
-│   │   ├── workflow-control/   #    工作流控制
-│   │   ├── code-search/        #    代码搜索
-│   │   ├── code-implementation/#    代码实现
-│   │   ├── testing/            #    测试
-│   │   └── code-review/        #    代码审查
-│   ├── rules/                  # 📏 规则文件
-│   │   ├── workflow.md         #    工作流规则
-│   │   ├── code-quality.md     #    代码质量规则
-│   │   ├── security.md         #    安全规则
-│   │   └── dashboard-update.md #    Dashboard 更新规则
-│   ├── commands/               # ⌨️ 自定义命令
-│   │   ├── swe.md             #    /swe 完整流程
-│   │   ├── analyze.md         #    /analyze 代码分析
-│   │   ├── plan.md            #    /plan 任务规划
-│   │   ├── test.md            #    /test 测试执行
-│   │   ├── review.md          #    /review 代码审查
-│   │   └── status.md          #    /status 状态查看
-│   └── state/                  # 📦 运行时状态
-└── docs/                       # 📚 项目文档
-    ├── ARCHITECTURE.md         #    架构设计文档
-    ├── GETTING_STARTED.md      #    快速开始指南
-    └── PHILOSOPHY.md           #    工程哲学
+│   ├── settings.json           # ⚙️ 权限与工具配置
+│   ├── agents/                 # 🤖 6个子智能体的 System Prompt
+│   ├── skills/                 # 🎯 可复用的技能 (搜索、测试等)
+│   ├── rules/                  # 📏 强制性规则 (Lint, Security)
+│   └── commands/               # ⌨️ Slash Commands 定义 (/swe, /plan)
+└── docs/                       # 📚 详细文档
 ```
 
 ---
 
-## 🚀 快速开始
+## 🔧 常用命令参考
 
-### 1. 安装
-
-将框架文件复制到你的项目根目录。
-
-### 2. 配置
-
-根据项目需求调整 `.claude/settings.json`。
-
-### 3. 使用
-
-在 Cursor 中使用命令：
-
-```bash
-# 查看状态
-/status
-
-# 执行完整 SWE 流程
-/swe 修复用户登录的空指针异常
-
-# 分析代码
-/analyze src/services/UserService.ts
-
-# 生成任务计划
-/plan 实现用户邮箱验证功能
-
-# 运行测试
-/test src/auth/
-
-# 代码审查
-/review
-```
-
-详见 [快速开始指南](./docs/GETTING_STARTED.md)。
-
----
-
-## 🤖 子智能体
-
-| 智能体 | 职责 | 核心能力 |
-|--------|------|----------|
-| **Supervisor** | 任务协调、DAG 生成、质量门控 | 规划、调度、监控 |
-| **Repo Scout** | 代码检索、依赖分析、影响评估 | 搜索、分析、追踪 |
-| **Architect** | 技术方案、接口设计、风险评估 | 设计、评估、权衡 |
-| **Implementer** | 代码实现、Bug 修复、测试编写 | 编码、重构、测试 |
-| **Tester** | 测试执行、结果分析、覆盖率 | 验证、分析、报告 |
-| **Reviewer** | 代码审查、安全检查、验收 | 审查、检查、验收 |
-
----
-
-## 📊 Dashboard
-
-实时展示工作流状态：
-
-- **Session Info**：会话基本信息
-- **Task DAG**：任务依赖关系图（Mermaid）
-- **Agent Status**：各智能体状态
-- **Task List**：子任务列表与进度
-- **Verification**：验证状态（lint/test/build）
-- **Activity Log**：活动日志
-- **Resource Usage**：资源消耗统计
-
-查看 [DASHBOARD.md](./DASHBOARD.md)。
-
----
-
-## 🎯 设计理念
-
-### 控制面与数据面分离
-
-- **控制面**：任务调度、状态管理、质量门控
-- **数据面**：代码检索、工具执行、结果收集
-
-### 结构化通信
-
-智能体之间使用 YAML/JSON 格式通信，减少歧义，便于验证。
-
-### 质量内建
-
-- **Pre-commit Gate**：lint + typecheck + 单元测试
-- **Pre-merge Gate**：全量测试 + 审查
-
-### 最小权限
-
-默认只允许读取操作，写入需确认，危险操作需审批。
-
-详见 [工程哲学](./docs/PHILOSOPHY.md)。
-
----
-
-## 📖 文档
-
-| 文档 | 描述 |
-|------|------|
-| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 详细架构设计 |
-| [GETTING_STARTED.md](./docs/GETTING_STARTED.md) | 快速开始指南 |
-| [PHILOSOPHY.md](./docs/PHILOSOPHY.md) | 设计理念与工程哲学 |
-| [CLAUDE.md](./CLAUDE.md) | 项目记忆文件 |
-| [DASHBOARD.md](./DASHBOARD.md) | 实时状态仪表板 |
-
----
-
-## 🔧 自定义
-
-### 添加新智能体
-
-在 `.claude/agents/` 创建新的 `.md` 文件。
-
-### 添加新技能
-
-在 `.claude/skills/` 创建新目录和 `SKILL.md`。
-
-### 添加新规则
-
-在 `.claude/rules/` 创建新的 `.md` 文件。
-
-### 添加新命令
-
-在 `.claude/commands/` 创建新的 `.md` 文件。
+| 命令 | 用途 | 示例 |
+|------|------|------|
+| `/status` | 查看当前进度 | `/status` |
+| `/plan` | 仅生成计划 (不执行) | `/plan 重构 AuthService` |
+| `/swe` | 执行完整开发流程 | `/swe 修复登录页面的 CSS 错位` |
+| `/analyze`| 分析代码结构 | `/analyze src/utils/` |
+| `/test` | 运行测试并分析失败 | `/test src/components/` |
+| `/review` | 对当前变更进行审查 | `/review` |
 
 ---
 
 ## 📜 许可证
 
-MIT License
+[MIT License](https://opensource.org/licenses/MIT)
 
 ---
 
 ## 🙏 致谢
 
-本框架的设计理念借鉴了：
-
-- **DR Agent 论文**：Deep Research Agents 的系统架构思想
-- **Claude Code 官方文档**：记忆系统与子智能体机制
-- **LangGraph**：状态机与图编排思想
-- **Anthropic 工程博客**：长程 AI 系统设计经验
+本框架的设计灵感来源于：
+- **Deep Research Agents** (关于多智能体协作的学术研究)
+- **Claude Code** (Anthropic 官方的 CLI 工具机制)
+- **LangGraph** (图与状态机编排思想)
 
 ---
 
