@@ -5,59 +5,74 @@
       "Grep(*)",
       "Glob(*)",
       "LS(*)",
+      "Task(*)",
       "Bash(git status)",
-      "Bash(git diff*)",
-      "Bash(git log*)",
-      "Bash(npm test*)",
-      "Bash(npm run lint*)",
-      "Bash(npm run build*)",
-      "Bash(pytest*)",
-      "Bash(python -m pytest*)",
-      "Bash(cargo test*)",
-      "Bash(cargo check*)",
-      "Bash(go test*)"
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+      "Bash(pytest:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo check:*)",
+      "Bash(go test:*)",
+      "Bash(jest:*)",
+      "Bash(vitest:*)"
     ],
     "ask": [
       "Write(*)",
       "Edit(*)",
-      "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(npm install*)",
-      "Bash(pip install*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [
-      "Bash(git push*)",
-      "Bash(rm -rf*)",
-      "Bash(sudo*)",
-      "Bash(*prod*)",
-      "Bash(*production*)"
+      "Bash(git push:*)",
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)",
+      "Bash(:*prod:*)",
+      "Bash(:*production:*)"
+    ],
+    "defaultMode": "default",
+    "additionalDirectories": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'node -e \"let d=\\\"\\\";process.stdin.on(\\\"data\\\",c=>d+=c);process.stdin.on(\\\"end\\\",()=>{let j={};try{j=JSON.parse(d||\\\"{}\\\")}catch{};let cmd=(j.command||j.tool_input?.command||\\\"\\\").toString().slice(0,300);let ts=new Date().toISOString().replace(\\\"T\\\",\\\" \\\"\").replace(/\\\\..*$/,\\\"\\\");require(\\\"fs\\\").appendFileSync(\\\".claude/state/audit.log\\\",`[${ts}] PreToolUse Bash: ${cmd}\\\\n`);});\"'"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'node -e \"let d=\\\"\\\";process.stdin.on(\\\"data\\\",c=>d+=c);process.stdin.on(\\\"end\\\",()=>{let j={};try{j=JSON.parse(d||\\\"{}\\\")}catch{};let fp=(j.file_path||j.tool_input?.file_path||\\\"\\\").toString();let ts=new Date().toISOString().replace(\\\"T\\\",\\\" \\\"\").replace(/\\\\..*$/,\\\"\\\");require(\\\"fs\\\").appendFileSync(\\\".claude/state/audit.log\\\",`[${ts}] PreToolUse Write/Edit: ${fp}\\\\n`);});\"'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -lc 'node -e \"let d=\\\"\\\";process.stdin.on(\\\"data\\\",c=>d+=c);process.stdin.on(\\\"end\\\",()=>{let j={};try{j=JSON.parse(d||\\\"{}\\\")}catch{};let ec=(j.response?.exit_code??\\\"\\\").toString();let ts=new Date().toISOString().replace(\\\"T\\\",\\\" \\\"\").replace(/\\\\..*$/,\\\"\\\");require(\\\"fs\\\").appendFileSync(\\\".claude/state/audit.log\\\",`[${ts}] PostToolUse Bash: exit_code=${ec}\\\\n`);});\"'"
+          }
+        ]
+      }
     ]
   },
-  "additionalDirectories": [],
-  "defaultMode": "default",
-  "hooks": {
-    "PreToolExecution": {
-      "Bash": {
-        "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] EXEC: $TOOL_INPUT\" >> .claude/state/audit.log"
-      },
-      "Write": {
-        "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] WRITE: $TOOL_INPUT\" >> .claude/state/audit.log"
-      }
-    },
-    "PostToolExecution": {
-      "Bash": {
-        "command": "echo \"[$(date '+%Y-%m-%d %H:%M:%S')] DONE: exit_code=$EXIT_CODE\" >> .claude/state/audit.log"
-      }
-    }
-  },
-  "model": {
-    "default": "sonnet",
-    "subagent": "sonnet"
-  },
-  "budget": {
-    "maxTokensPerSession": 500000,
-    "maxToolCallsPerTask": 100,
-    "maxWallTimeMinutes": 30
-  }
+  "env": {}
 }
 

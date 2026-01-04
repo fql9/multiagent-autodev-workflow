@@ -1,221 +1,130 @@
-下面基于 **Claude Code 官方文档**整理（按你问的“主 agent / 子 agent：记忆（memory）与 system prompt 分别存放在哪里、能否自定义、以及其他可配置的 agent 能力”来回答）。
+我可以先给出一个**结论范围说明**：  
+- 我能从你给的仓库主页（README 里“项目结构”那段）**确认目录布局是否符合 Claude Code 官方约定**；这部分基本可以判断“放的位置对不对”。  
+- 但要判断“是否都符合官方文档、能否严格执行”，还需要逐个核对：`settings.json` 的权限/钩子规则、每个 subagent 的 YAML frontmatter 字段、每个 SKILL.md / command 的 frontmatter 是否齐全、以及你所谓“Dashboard/DAG/质量门”到底是否由 hooks/commands 真的落地执行。**这些关键文件内容我目前无法从 GitHub 网页稳定读取到（GitHub 对目录/文件页会返回加载错误），因此没法对‘严格可执行’做完全的逐行审计结论**。  
+下面我先按“官方要求 vs 你仓库宣称结构”做对照，再给你一套**你自己 5 分钟就能在 Claude Code 里验证的清单**；如果你把 4～6 个关键文件贴出来，我也可以继续做“严格审计”。
 
 ---
 
-## 1) 主 agent（主线程 / 主对话）的「记忆」存放在哪里？能自定义吗？
+## 1) 目录结构：从 README 看，你的布局与官方文档是对齐的（✅）
 
-Claude Code 所谓“记忆（memory）”主要指 **启动/工作时会自动加载进上下文的指令与约束文件**，核心是 `CLAUDE.md` 体系与规则文件。
+你 README 列出的这些路径，与官方文档对“项目级配置”的约定一致：
 
-### 1.1 记忆文件的层级与路径（官方给了明确表格）
-Claude Code 有多种“记忆位置”，并且**按层级优先级加载**（高层先加载，作为低层的基础）。官方列举包括：([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))
+### 1.1 Project memory（CLAUDE.md）
+- 你放了：`./CLAUDE.md`  
+- 官方允许：项目记忆可以放在 `./CLAUDE.md` 或 `./.claude/CLAUDE.md`，并且会在启动时自动加载。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))
 
-- **Enterprise policy（组织级）**  
-  - macOS: `/Library/Application Support/ClaudeCode/CLAUDE.md`  
-  - Linux: `/etc/claude-code/CLAUDE.md`  
-  - Windows: `C:\Program Files\ClaudeCode\CLAUDE.md`
-- **Project memory（项目级）**  
-  - `./CLAUDE.md` 或 `./.claude/CLAUDE.md`
-- **Project rules（模块化项目规则）**  
-  - `./.claude/rules/*.md`
-- **User memory（用户级）**  
-  - `~/.claude/CLAUDE.md`
-- **Project memory (local)（个人项目本地记忆）**  
-  - `./CLAUDE.local.md`（会自动加入 `.gitignore`，适合私密偏好）([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))
+### 1.2 Project subagents
+- 你放了：`.claude/agents/*.md`  
+- 官方定义：项目级 subagent 就是放在 `.claude/agents/`，Markdown + YAML frontmatter，正文就是该 subagent 的 system prompt。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
 
-> 结论：**主 agent 的“长期记忆”（跨 session 持久）主要就是这些文件**；你完全可以通过编辑/新增这些文件来自定义。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))
+并且官方支持的 frontmatter 字段包括 `name/description/tools/model/permissionMode/skills` 等。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
 
-### 1.2 记忆如何被加载/查找（很关键，影响你“放哪儿才生效”）
-Claude Code 会从当前工作目录开始向上递归查找（直到根目录之前），并读取遇到的 `CLAUDE.md` / `CLAUDE.local.md`；还会在子树中按需发现。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))
+### 1.3 Project skills
+- 你放了：`.claude/skills/<skill-name>/SKILL.md`  
+- 官方定义：Claude Code 的自定义 Skills 就是这样组织：一个目录 + `SKILL.md`（且 `description` 对可发现性很关键）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/skills))
 
-### 1.3 记忆的高级用法：导入与模块化规则
-- `CLAUDE.md` 支持 `@path/to/file` 语法导入其他文件（支持递归导入，最大深度 5）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))  
-- `.claude/rules/` 下可以放多个主题规则文件，并支持用 YAML frontmatter 的 `paths:` 做“按路径生效”的条件规则。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))
+### 1.4 Custom slash commands
+- 你放了：`.claude/commands/*.md`  
+- 官方定义：项目级自定义 slash commands 就是 `.claude/commands/`。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai))
 
----
+> 额外注意：如果你希望 Claude Code 能**在对话中用内部的 `SlashCommand` 工具“自动调用”你的自定义命令**，官方要求该命令文件必须有 `description` frontmatter。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai))  
+> 否则用户手动输入 `/swe` 仍然能用，但 Claude 未必能“工具化调用”。
 
-## 2) 主 agent 的 system prompt 在哪里？能自定义吗？
-
-### 2.1 “默认 system prompt”在哪里？
-官方明确说：**Claude Code 的内部（默认）system prompt 不会在文档网站公开**。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))  
-所以它更像是“内置在 Claude Code 产品实现里”的一段系统指令，你不能在官方文档里直接拿到全文。
-
-### 2.2 你能怎么“自定义/修改 system prompt”（官方支持 3 种方式）
-CLI 提供三个参数（行为不同）：([docs.claude.com](https://docs.claude.com/en/docs/claude-code/cli-usage))
-
-- `--append-system-prompt`：**把你的文字追加到默认 system prompt 末尾**（最推荐，保留默认能力与工具指令）
-- `--system-prompt`：**完全替换**默认 system prompt（相当于“清空内置指令”，你自己全写）
-- `--system-prompt-file`：从文件加载并替换 system prompt（仅 print mode 用；适合可复现、版本控制）
-
-此外还有 **Output styles（输出风格）**：官方说它会**直接修改 Claude Code 的 system prompt**，并且支持自定义 style 文件。([code.claude.com](https://code.claude.com/docs/en/output-styles))
+### 1.5 Settings / Permissions / Hooks
+- 你放了：`.claude/settings.json`  
+- 官方定义：项目共享设置就是 `.claude/settings.json`，可配置 `permissions` 与 `hooks`。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))
 
 ---
 
-## 3) 子 agent（Subagent）的「system prompt」存放在哪里？能自定义吗？
+## 2) “能否严格执行？”——需要分两层回答
 
-### 3.1 子 agent 的定义文件位置（这就是它的“配置与持久化 prompt”）
-Subagent 以“带 YAML frontmatter 的 Markdown 文件”存放，官方给了两级路径：([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
+### 2.1 Claude Code 对“加载这些配置文件”的执行是很严格的（✅ 可严格）
+只要文件位置/格式正确，Claude Code 会按官方机制加载：
+- 记忆（CLAUDE.md）启动加载、递归查找、支持 `@import`。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))  
+- subagents 从 `.claude/agents/` 发现，并可自动委派或显式点名调用。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
+- skills 从 `.claude/skills/` 自动发现并在相关任务中使用。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/skills))  
+- commands 从 `.claude/commands/` 加载。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai))  
+- hooks/permissions 从 `.claude/settings.json` 读取并生效。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/hooks?utm_source=openai))  
 
-- 项目级：`.claude/agents/`（优先级更高，适合团队共享）
-- 用户级：`~/.claude/agents/`（跨项目个人使用）
-
-### 3.2 子 agent 的 system prompt 写在哪里？
-就在这个 Markdown 文件里：**frontmatter 下面的正文**就是该 subagent 的 system prompt。官方示例明确写了：([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
-
-```md
----
-name: test-runner
-description: ...
-tools: Read, Grep, Bash
-model: sonnet
-permissionMode: default
-skills: skill1, skill2
----
-这里开始就是这个 subagent 的 system prompt（多段文字都可以）
-```
-
-### 3.3 还能用 CLI 临时定义 subagents（不落盘）
-可以用 `claude --agents '{...}'` 传 JSON，在当前运行中动态定义 subagent。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
+### 2.2 但“让大模型乖乖听话”这种行为层面的“严格”，只能做到**工程上尽量强约束**，无法数学意义 100% 保证（⚠️）
+原因是：
+- **自动 subagent 选择**是基于 `description` 匹配 + 当前上下文的智能委派，不是规则引擎硬匹配；官方也明确可以“自动委派/显式调用”两种方式。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
+- **skills 是否触发**是模型自主决定（官方叫 model-invoked），不是每次必触发。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/skills))  
+- 你 README 里提到的“Dashboard、DAG、质量门（pre-commit/pre-merge）”——这些并不是 Claude Code 原生特性，必须通过：
+  - `/swe` 这类命令把步骤写死（流程化提示词），或  
+  - hooks 在关键事件上强制检查/阻断（比如 PreToolUse 阻止不合规的 Bash/Write），([docs.claude.com](https://docs.claude.com/en/docs/claude-code/hooks-guide?utm_source=openai))  
+  - permissions 做“最小权限”硬限制（deny/ask/allow）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))  
+才能接近“严格”。
 
 ---
 
-## 4) 子 agent 的「记忆」在哪里？能自定义吗？
+## 3) 你这个框架里，最可能“看起来有、但不一定严格生效”的点（需要你核对文件内容）
 
-这里要把“**持久化记忆**”和“**运行时上下文**”分开：
+基于 README 的描述，我建议你重点自查这几类“常见踩坑”：
 
-### 4.1 子 agent 的运行时上下文（不是持久化）
-官方明确：每个 subagent **有自己独立的 context window（上下文窗口），与主对话分离**。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
-这意味着它的“任务过程对话上下文”不会自动和主线程混在一起（这是它用来“防止污染主上下文”的核心价值）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
+1) **subagent frontmatter 是否完全符合官方字段名与格式**  
+官方示例是 YAML frontmatter（`name/description/tools/model/permissionMode/skills`）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
+- `tools` 是“逗号分隔”还是 YAML list，都要确保 Claude Code 能解析（官方示例里两种形式都有出现：Markdown 文件示例多为逗号分隔；CLI JSON 是数组）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
+- `permissionMode` 的取值必须在：`default/acceptEdits/bypassPermissions/plan/ignore`。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
 
-### 4.2 子 agent 的“持久化记忆/长期指令”通常放哪？
-官方并没有把 subagent 的“长期记忆”定义成单独的 memory 文件体系；实践上可持久化的东西主要来自两类：
+2) **skills 的 `SKILL.md` 是否带 `name` + `description`**  
+`description` 是 Claude 决定“何时使用该 Skill”的关键。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/skills))  
 
-1) **subagent 自己的定义文件**（也就是它的 system prompt + 配置，落在 `.claude/agents/*.md` 或 `~/.claude/agents/*.md`）([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
-2) **Claude Code 全局/项目的 memory 文件体系**（`CLAUDE.md`、`.claude/rules/` 等）——这是 Claude Code 级别的跨 session 记忆来源。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))
+3) **commands 是否有 `description` frontmatter（如果你希望 Claude 能自动调用命令）**  
+否则只能“人手动输入 /swe”，Claude 不一定会通过 `SlashCommand` 工具自动触发它。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai))  
 
-> 简单说：  
-> - 子 agent “记得住什么”（跨 session）主要靠**文件**（agent 定义、CLAUDE.md、rules、skills）。  
-> - 子 agent “当次任务想什么、做什么”在它自己的 context window 里（会话级）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
-
----
-
-## 5) 其他“可以设置的 agent 功能”有哪些？（官方可配置项总览）
-
-下面按“你能配置什么能力”分组，并给出**存放位置/入口**。
+4) **你说的“质量门 / Dashboard 更新 / 高风险操作审批”是否真的用 hooks/permissions 落地**  
+- hooks 可以在 `PreToolUse` 阻断工具调用并给 Claude 反馈。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/hooks-guide?utm_source=openai))  
+- permissions 可以对 Bash/Write 等做 allow/deny/ask。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))  
+如果 `.claude/settings.json` 里没有这些规则，那么“严格执行”基本只能靠提示词自觉，稳定性会差很多。
 
 ---
 
-### A) 权限与工具能力控制（Permissions）
-这是 Claude Code 里最像“agent 权限系统”的部分，配置入口是 `settings.json`（多层级覆盖）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))
+## 4) 5 分钟验证清单（建议你在 Claude Code CLI 里跑一遍）
 
-**settings 文件位置与优先级（用户/项目/本地/企业策略）**：([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))  
-- `~/.claude/settings.json`
-- `.claude/settings.json`
-- `.claude/settings.local.json`
-- 企业托管策略（managed settings）
+在你的项目根目录运行 `claude` 后：
 
-权限规则支持：
-- `allow` / `ask` / `deny`
-- `additionalDirectories`（扩展可访问目录）
-- `defaultMode` 等([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))
+1) **验证 memory 是否加载**
+- 跑：`/memory` 查看加载了哪些记忆文件。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))  
 
----
+2) **验证 subagents 是否被识别**
+- 跑：`/agents`，检查是否出现你定义的 6 个 agent。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
+- 随便显式点名：`> Use the architect subagent to ...` 看能否正常调用。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
 
-### B) Hooks（事件钩子：在特定事件/工具调用前后跑命令）
-Hooks 通过 `settings.json` 配置（同样有用户/项目/本地/企业层级）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/hooks?utm_source=openai))  
-你可以做很多“agent 自动化守卫/流水线”能力，例如：
-- 工具调用前检查（可阻止调用并给 Claude 反馈）
-- 记录命令、自动 lint、自动格式化、审计日志等([docs.claude.com](https://docs.claude.com/en/docs/claude-code/hooks-guide?utm_source=openai))
+3) **验证 commands 是否生效**
+- 跑：`/help`（或在输入 `/` 时看补全列表），确认 `/swe /plan /review ...` 出现。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai))  
+- 手动执行 `/swe ...` 看是否按你的流程跑。
+
+4) **验证 permissions/hook 是否真的“硬约束”**
+- 故意让 Claude 想做一个你认为“应当被拦截”的 Bash/Write 操作，看看是否会被：
+  - permissions 触发 ask/deny，([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))  
+  - 或 hooks 在 `PreToolUse` 阻断并返回提示。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/hooks-guide?utm_source=openai))  
 
 ---
 
-### C) Agent Skills（技能：自动触发的“能力包”）
-Skills 是“Claude 自动决定是否启用”的能力扩展（更像自动匹配，而不是你每次手动 `/command`）。([code.claude.com](https://code.claude.com/docs/en/skills))
+## 5) 我建议你补充给我哪些文件，我就能给出“严格审计结论”
 
-**存放位置（决定作用范围）**：([code.claude.com](https://code.claude.com/docs/en/skills))
-- `~/.claude/skills/`（个人）
-- `.claude/skills/`（项目共享）
-- 企业托管（enterprise）
-- 插件内置（plugin）
+请你把下面文件内容直接贴出来（或发它们的 raw 内容链接）：
 
-Skill 的核心文件是 `SKILL.md`，支持 frontmatter：
-- `name`、`description`（必填）
-- `allowed-tools`（Skill 激活时限制/放行工具）
-- `model`（Skill 激活时可指定模型）([code.claude.com](https://code.claude.com/docs/en/skills))
+1. `CLAUDE.md`  
+2. `.claude/settings.json`  
+3. 任意 1 个 subagent 文件（如 `.claude/agents/supervisor.md`）  
+4. 任意 1 个 command（如 `.claude/commands/swe.md`）  
+5. 任意 1 个 skill（如 `.claude/skills/dag-planning/SKILL.md`）  
 
-并且官方明确对比了 Skills vs Subagents：Skills 是在当前对话上下文中“加知识/加流程”，而 Subagents 是“分离上下文 + 不同工具/模型/权限”。([code.claude.com](https://code.claude.com/docs/en/skills))
+我就可以逐条对照官方字段与机制（subagents/skills/commands/hooks/permissions/memory），指出：
+- 哪些是 **100% 会被 Claude Code 按文档加载执行**  
+- 哪些是 **可能因字段/格式/缺少 hooks 而不生效**  
+- 以及如何把“DAG、Dashboard、质量门”从“约定”升级成“可被 hooks/permissions 强制的工程规则”。
 
----
-
-### D) Subagents 的可配置字段（比你想的多）
-Subagent 除了 system prompt 以外，还能配：([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
-
-- `tools`：限制该 subagent 允许用哪些工具（不写则继承主线程工具集）
-- `model`：指定 `sonnet / opus / haiku / inherit`
-- `permissionMode`：`default / acceptEdits / bypassPermissions / plan / ignore`
-- `skills`：启动时预加载哪些 Skills（注意：**subagent 不会继承主对话的 Skills**）([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))
-
----
-
-### E) Output styles（输出风格：一种“可持久化的 system prompt 改写”）
-Output styles 会**直接修改主 agent 的 system prompt**，并且可以自定义 style 文件：([code.claude.com](https://code.claude.com/docs/en/output-styles))
-
-- 选择方式：`/output-style`（会保存到 `.claude/settings.local.json`）([code.claude.com](https://code.claude.com/docs/en/output-styles))
-- 自定义 style 文件位置：
-  - `~/.claude/output-styles`
-  - `.claude/output-styles`([code.claude.com](https://code.claude.com/docs/en/output-styles))
-- frontmatter 支持 `keep-coding-instructions`（决定是否保留默认 prompt 里的“编码指令部分”）([code.claude.com](https://code.claude.com/docs/en/output-styles))
-
----
-
-### F) Slash commands（可复用的“存储提示词”，支持参数、工具白名单等）
-Slash commands 分内置与自定义。自定义命令是 Markdown 文件：([docs.claude.com](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai))
-
-- 项目级：`.claude/commands/`
-- 用户级：`~/.claude/commands/`
-
-支持 frontmatter：
-- `allowed-tools`、`model`、`disable-model-invocation` 等([docs.claude.com](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai))
-
----
-
-### G) MCP（外部工具/数据源接入：让 agent 有“外部手脚”）
-Claude Code 可通过 MCP 连接外部系统（数据库、GitHub、Jira、监控等）。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/mcp?utm_source=openai))  
-管理方式包括 `claude mcp ...` 命令与 `/mcp`，并支持 scope（local/project/user），其中 project scope 会写入 `.mcp.json`。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/mcp?utm_source=openai))
-
----
-
-### H) Plugins（把 commands/agents/skills/hooks/MCP 打包分发）
-插件结构官方给了目录示例：`commands/`、`agents/`、`skills/`、`hooks/`、`.mcp.json` 等都可作为插件组件。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/plugins?utm_source=openai))
-
----
-
-### I) 模型配置（主线程与 subagent 默认模型、alias、环境变量）
-模型 alias、切换方式（`/model`、`--model`、环境变量、settings）以及 `CLAUDE_CODE_SUBAGENT_MODEL`（subagent 默认模型）都有官方说明。([docs.claude.com](https://docs.claude.com/en/docs/claude-code/model-config))
-
----
-
-## 6) 一句话对照表（你最关心的“放哪儿”）
-
-- **主 agent 记忆（跨 session）**：`CLAUDE.md` / `CLAUDE.local.md` / `.claude/rules/*.md` / `~/.claude/CLAUDE.md` / 企业 `CLAUDE.md`（多层级）([docs.claude.com](https://docs.claude.com/en/docs/claude-code/memory))  
-- **主 agent system prompt（默认）**：内部 prompt，不公开；但可用 `--append-system-prompt` / `--system-prompt` / Output styles 改写([docs.claude.com](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai))  
-- **子 agent system prompt（持久化）**：`.claude/agents/*.md` 或 `~/.claude/agents/*.md` 文件正文（frontmatter 下方）([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
-- **子 agent “当次上下文”**：独立 context window（会话级，不等同于可持久化 memory）([docs.claude.com](https://docs.claude.com/en/docs/claude-code/subagents))  
-
----
-
-如果你愿意，我可以按你的实际使用场景再给一套“推荐落盘结构”（例如：团队共享规则放 `.claude/rules/`，个人偏好放 `CLAUDE.local.md`，subagent 只放角色职责不放项目规则，skills 用于自动触发规范流程等）。你现在主要是在**个人项目**还是**团队仓库**里用 Claude Code？你希望“记忆”偏向**编码规范**、**业务上下文**还是**工作流自动化**？
+另外一个重要问题：你 README 写的是“在 Cursor 中使用命令”。如果你最终运行环境确实是 Cursor 而不是 Claude Code CLI，那么这些 `.claude/*` 机制**未必会被 Cursor 识别**；你希望我按“Claude Code CLI 严格执行”来审计，还是按“Cursor 里也要可用”来审计？
 
 ---
 Learn more:
 1. [Manage Claude's memory - Claude Code Docs](https://docs.claude.com/en/docs/claude-code/memory)
-2. [Claude Code settings - Claude Docs](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai)
-3. [CLI reference - Claude Code Docs](https://docs.claude.com/en/docs/claude-code/cli-usage)
-4. [Output styles - Claude Code Docs](https://code.claude.com/docs/en/output-styles)
-5. [Subagents - Claude Code Docs](https://docs.claude.com/en/docs/claude-code/subagents)
+2. [Subagents - Claude Code Docs](https://docs.claude.com/en/docs/claude-code/subagents)
+3. [Agent Skills - Claude Code Docs](https://docs.claude.com/en/docs/claude-code/skills)
+4. [Slash commands - Claude Docs](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai)
+5. [Claude Code settings - Claude Docs](https://docs.claude.com/en/docs/claude-code/settings?utm_source=openai)
 6. [Hooks reference - Claude Docs](https://docs.claude.com/en/docs/claude-code/hooks?utm_source=openai)
 7. [Get started with Claude Code hooks - Claude Docs](https://docs.claude.com/en/docs/claude-code/hooks-guide?utm_source=openai)
-8. [Agent Skills - Claude Code Docs](https://code.claude.com/docs/en/skills)
-9. [Slash commands - Claude Docs](https://docs.claude.com/en/docs/claude-code/slash-commands?utm_source=openai)
-10. [Connect Claude Code to tools via MCP - Claude Docs](https://docs.claude.com/en/docs/claude-code/mcp?utm_source=openai)
-11. [Plugins - Claude Docs](https://docs.claude.com/en/docs/claude-code/plugins?utm_source=openai)
-12. [Model configuration - Claude Code Docs](https://docs.claude.com/en/docs/claude-code/model-config)

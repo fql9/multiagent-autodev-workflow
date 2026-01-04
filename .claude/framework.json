@@ -1,0 +1,13 @@
+{
+  "model": {
+    "default": "sonnet",
+    "subagent": "sonnet"
+  },
+  "budget": {
+    "maxTokensPerSession": 500000,
+    "maxToolCallsPerTask": 100,
+    "maxWallTimeMinutes": 30
+  }
+}
+
+
