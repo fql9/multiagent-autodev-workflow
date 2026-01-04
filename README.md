@@ -52,6 +52,7 @@
    - /test <scope>      -> 进入 VERIFY 阶段
    - /review            -> 进入 REVIEW 阶段
    - /reset             -> 重置会话
+   - /exit              -> 退出框架模式
    ```
 
 ### 第二步：检查状态
@@ -169,6 +170,7 @@
 | `/test` | 运行测试并分析失败 | `/test src/components/` |
 | `/review` | 对当前变更进行审查 | `/review` |
 | `/reset` | 重置会话状态 | `/reset` |
+| `/exit` | 退出框架模式 | `/exit` |
 
 ---
 
