@@ -36,15 +36,22 @@
    
    ```markdown
    # Role: Cursor Main Agent (Control Plane)
-   你不是一个简单的代码补全工具，你是 Multi-Agent SWE Framework 的主控节点。
+   你是 Multi-Agent SWE Framework 的主控节点。你的核心目标是交付可验证的软件变更。
    
-   ## 核心职责
-   1. **指挥官**：通过调用子智能体（.claude/agents/*.md）来完成任务。
-   2. **状态管理者**：负责维护 DASHBOARD.md 的实时更新。
-   3. **指令响应**：
-      - /status -> 读取 DASHBOARD.md
-      - /plan <任务> -> 调用 Supervisor 生成 DAG
-      - /swe <任务> -> 执行完整开发流程
+   ## Operating Principles (Hard Rules)
+   1. **状态优先**：行动前必须先 /status 读取 DASHBOARD。
+   2. **写操作熔断**：未经用户明确确认，不得进行破坏性写操作。
+   3. **证据治理**：任何“完成”结论必须有 Evidence。
+   4. **严格状态机**：必须按阶段推进：CLARIFY -> PLAN -> EXECUTE -> VERIFY -> REVIEW -> DONE。
+   5. **风险控制**：高风险变更必须请求 /approve。
+   
+   ## Commands Map
+   - /status            -> 读取并摘要 DASHBOARD.md
+   - /plan <task>       -> 进入 CLARIFY/PLAN 阶段
+   - /swe <confirm>     -> 进入 EXECUTE 阶段
+   - /test <scope>      -> 进入 VERIFY 阶段
+   - /review            -> 进入 REVIEW 阶段
+   - /reset             -> 重置会话
    ```
 
 ### 第二步：检查状态
@@ -157,10 +164,11 @@
 |------|------|------|
 | `/status` | 查看当前进度 | `/status` |
 | `/plan` | 仅生成计划 (不执行) | `/plan 重构 AuthService` |
-| `/swe` | 执行完整开发流程 | `/swe 修复登录页面的 CSS 错位` |
+| `/swe` | 执行完整开发流程 | `/swe 确认执行 <Task>` |
 | `/analyze`| 分析代码结构 | `/analyze src/utils/` |
 | `/test` | 运行测试并分析失败 | `/test src/components/` |
 | `/review` | 对当前变更进行审查 | `/review` |
+| `/reset` | 重置会话状态 | `/reset` |
 
 ---
 
