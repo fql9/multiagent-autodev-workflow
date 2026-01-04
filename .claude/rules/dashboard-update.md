@@ -5,9 +5,15 @@ alwaysApply: true
 
 # Dashboard Update Rules - 仪表板更新规则
 
-## 更新时机
+## 更新时机与初始化
 
-### 必须更新 DASHBOARD.md
+### 0. 初始化/重置 (Initialization)
+**当开始一个新的 Session 或用户请求重置状态时：**
+1. 读取 `.claude/templates/DASHBOARD_TEMPLATE.md` 的内容。
+2. 用当前 Session ID 和 时间戳 替换模板中的占位符。
+3. 覆盖写入 `DASHBOARD.md`。
+
+### 1. 必须更新 DASHBOARD.md 的时刻
 1. **任务开始时**
    - 记录任务目标
    - 设置初始状态
@@ -119,4 +125,3 @@ graph TD
 | 🔵 | Idle |
 | 🟢 | Active |
 | 🟡 | Working |
-
