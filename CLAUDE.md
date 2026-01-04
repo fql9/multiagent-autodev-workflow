@@ -2,6 +2,10 @@
 
 > 这是多智能体软件工程框架的主记忆文件，Claude Code 会在启动时自动加载此文件。
 
+## 🚨 Critical Meta-Rule
+**DASHBOARD.md 的 YAML Front Matter 是项目状态的唯一事实来源 (Source of Truth)。**
+所有状态变更（Goal, Status, Phase, DAG）必须优先写入 Dashboard YAML，而不是仅在自然语言对话中提及。
+
 ---
 
 ## 🎯 项目概述

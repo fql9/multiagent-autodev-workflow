@@ -203,38 +203,44 @@ your-project/
 
 ## Dashboard 解读
 
-### Session Info
+Dashboard 采用“双层结构”设计：顶部 YAML 为机器状态，下方 Markdown 为人类视图。
 
-```markdown
-| 属性 | 值 |
-|------|-----|
-| Session ID | session-abc123 |
-| 开始时间 | 2026-01-04 10:30:00 |
-| 当前状态 | 🟢 EXECUTING |
-| 目标 | 修复登录空指针异常 |
+### 1. Machine Snapshot (YAML)
+
+这是 Agent 状态的权威来源：
+
+```yaml
+session_info:
+  status: "RUNNING" # 运行状态
+  phase: "EXECUTE"  # 当前阶段
+  next_actions:     # 下一步明确指令
+    - { agent: "Implementer", action: "修复边界条件" }
+
+dag:
+  nodes: # 任务节点与状态
+    - { id: "T1", status: "DONE", artifacts: ["src/utils.ts"] }
 ```
 
-### Task DAG
+### 2. Status Overview (Human View)
+
+为人类设计的快速概览表格（10秒可读）：
+
+| Attribute | Value |
+|-----------|-------|
+| **Goal** | 修复登录空指针异常 |
+| **Status** | 🟢 RUNNING |
+| **Phase** | 🔧 EXECUTE |
+| **Next Actions** | Implementer: 修复边界条件 |
+
+### 3. Task DAG & Progress
+
+可视化任务依赖图：
 
 ```mermaid
 graph TD
-    T1[✅ 定位问题] --> T2[✅ 分析根因]
-    T2 --> T3[🔄 实现修复]
-    T3 --> T4[⏳ 运行测试]
-    T4 --> T5[⏳ 代码审查]
-```
-
-- ✅ 已完成
-- 🔄 进行中
-- ⏳ 待执行
-
-### Agent Status
-
-```markdown
-| Agent | 状态 | 当前任务 |
-|-------|------|----------|
-| Implementer | 🟡 Working | 实现修复 |
-| Tester | 🔵 Idle | - |
+  T1[✅ 定位问题] --> T2[✅ 分析根因]
+  T2 --> T3[🔄 实现修复]
+  T3 --> T4[⏳ 运行测试]
 ```
 
 ---

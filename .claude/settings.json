@@ -20,10 +20,7 @@
       "Bash(cargo check:*)",
       "Bash(go test:*)",
       "Bash(jest:*)",
-      "Bash(vitest:*)",
-      "Bash(git status)", "Bash(git diff)", "Bash(git log)",
-      "Bash(npm test*)", "Bash(npm run lint*)",
-      "Read(*)", "Grep(*)", "LS(*)"
+      "Bash(vitest:*)"
     ],
     "ask": [
       "Write(*)",
@@ -31,8 +28,7 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm install:*)",
-      "Bash(pip install:*)",
-      "Bash(git commit*)", "Bash(git push)", "Edit(*)", "Write(*)"
+      "Bash(pip install:*)"
     ],
     "deny": [
       "Bash(git push:*)",

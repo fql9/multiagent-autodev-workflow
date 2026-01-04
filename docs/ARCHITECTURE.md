@@ -312,15 +312,14 @@ description: 执行完整 SWE 流程
 
 ### 6. Dashboard (DASHBOARD.md)
 
-实时状态展示：
+采用“双层结构”设计的实时状态面板：
 
-- Session 信息
-- DAG 可视化（Mermaid）
-- Agent 状态表
-- 任务列表
-- 验证状态
-- 活动日志
-- 资源消耗
+1.  **Machine Snapshot (YAML Front Matter)**:
+    - 机器可解析的权威状态 (Source of Truth)
+    - 包含 Session Info, DAG Nodes, Quality Gates, Evidence Index
+2.  **Human View (Markdown)**:
+    - 人类可读的渲染层
+    - 包含 10秒概览表, Mermaid 流程图, 任务列表, 风险登记册
 
 ---
 
