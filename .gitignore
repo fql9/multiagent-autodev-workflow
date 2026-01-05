@@ -8,6 +8,12 @@
 !.claude/state/evidence/.gitkeep
 !.claude/state/logs/.gitkeep
 
+# Ignore runtime evidence/log files; keep only directory markers in git
+.claude/state/evidence/*
+!.claude/state/evidence/.gitkeep
+.claude/state/logs/*
+!.claude/state/logs/.gitkeep
+
 
 
 prompts/
