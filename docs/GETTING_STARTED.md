@@ -140,6 +140,27 @@ your-project/
 
 退出当前框架模式，Agent 将停止维护 Dashboard，仅作为普通 AI 助手响应。
 
+### 通过 Bash + Claude Code CLI 调用子 agent（可追溯证据链）
+
+> 目标：让“是否真的通过终端调用子 agent”变成可验证事实（命令 + 输出 + exit code）。
+
+1. 确保已安装 Claude Code CLI：
+
+```bash
+claude --version
+```
+
+2. 用包装器调用子 agent（会自动生成 Evidence）：
+
+```bash
+.claude/bin/call_subagent.sh implementer T1 prompts/T1.md
+```
+
+3. 查看证据文件与审计日志：
+- `.claude/state/evidence/<EV_ID>.md`
+- `.claude/state/logs/<EV_ID>.out.txt` / `.err.txt` / `.cmd.txt`
+- `.claude/state/audit.log`
+
 ---
 
 ## 工作流示例

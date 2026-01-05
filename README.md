@@ -171,6 +171,21 @@
 | `/review` | 对当前变更进行审查 | `/review` |
 | `/reset` | 重置会话状态 | `/reset` |
 | `/exit` | 退出框架模式 | `/exit` |
+| `/subagent` | 通过 Bash + Claude Code CLI 调用子 agent（生成 Evidence） | `.claude/bin/call_subagent.sh implementer T1 prompts/T1.md` |
+
+---
+
+## 🔎 如何证明“真的通过终端调用子 agent”（C 方案：Evidence 链）
+
+本仓库提供了**可审计证据链**：
+
+- **审计日志（自动）**：`.claude/settings.json` 已配置 hooks，所有 Bash / Write / Edit 工具调用会写入：
+  - `.claude/state/audit.log`
+- **子 agent 调用证据（推荐）**：使用 `.claude/bin/call_subagent.sh` 包装器，每次调用会生成：
+  - `.claude/state/evidence/<EV_ID>.md`
+  - `.claude/state/logs/<EV_ID>.out.txt` / `.err.txt` / `.cmd.txt`
+
+你可以把 `EV_ID` 写入 `DASHBOARD.md` 的 Evidence Index，从 Dashboard 一键追溯到“命令 / 输出 / exit code”。
 
 ---
 

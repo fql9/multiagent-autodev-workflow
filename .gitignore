@@ -3,5 +3,11 @@
 # Claude Code / local state
 .claude/state/*
 !.claude/state/.gitkeep
+!.claude/state/evidence/
+!.claude/state/logs/
+!.claude/state/evidence/.gitkeep
+!.claude/state/logs/.gitkeep
 
 
+
+prompts/
