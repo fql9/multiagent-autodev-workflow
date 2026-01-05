@@ -1,17 +1,26 @@
 ---
-allowed-tools: Read, Grep, Glob, LS, Bash(git diff*), Bash(git log*)
+allowed-tools: Read, Bash
 model: sonnet
-description: 执行代码审查
+description: 通过 Bash 调用 Claude Code CLI 的 reviewer 子 agent 进行审查并生成 Evidence
 ---
 
 # /review 命令 - 代码审查
 
-对代码变更进行结构化审查。
+**C 方案强制**：该命令不由主控节点直接输出审查结论；而是通过 Bash 调用 `claude` CLI 的 `reviewer` 子 agent 输出结构化审查报告，并生成 EV Evidence。
 
 ## 使用方式
 ```
 /review [目标]
 ```
+
+## 执行（Bash → Claude Code CLI）
+
+```bash
+chmod +x .claude/bin/review_exec.sh
+.claude/bin/review_exec.sh [target]
+```
+
+> 可选 smoke：`.claude/bin/review_exec.sh -- --help`
 
 ## 审查目标
 

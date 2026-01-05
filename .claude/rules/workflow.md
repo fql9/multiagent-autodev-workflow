@@ -38,6 +38,10 @@ alwaysApply: true
 - `.claude/bin/call_subagent.sh`（单次调用 + 生成 EV）
 - `.claude/bin/swe_exec.sh`（串行执行 repo-scout→architect→implementer→tester→reviewer）
 
+### 3.2 命令级强约束（防越权）
+- `/test`：必须通过 `.claude/bin/test_exec.sh` 调用 `tester` 子 agent（禁止主控直接跑测试并下结论）
+- `/review`：必须通过 `.claude/bin/review_exec.sh` 调用 `reviewer` 子 agent（禁止主控直接输出审查结论）
+
 ### 4. 验证与审查
 代码变更必须经过：
 - 静态检查（lint/typecheck）

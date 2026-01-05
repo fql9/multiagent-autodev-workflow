@@ -1,17 +1,26 @@
 ---
-allowed-tools: Read, Grep, Glob, LS, Bash(npm test*), Bash(pytest*), Bash(cargo test*), Bash(go test*), Bash(jest*), Bash(vitest*)
+allowed-tools: Read, Bash
 model: sonnet
-description: 运行测试并生成报告
+description: 通过 Bash 调用 Claude Code CLI 的 tester 子 agent 运行测试并生成 Evidence
 ---
 
 # /test 命令 - 测试执行
 
-运行测试并生成详细的测试报告。
+**C 方案强制**：该命令不由主控节点直接运行测试；而是通过 Bash 调用 `claude` CLI 的 `tester` 子 agent 执行，并生成可追溯 Evidence（EV）。
 
 ## 使用方式
 ```
 /test [范围] [选项]
 ```
+
+## 执行（Bash → Claude Code CLI）
+
+```bash
+chmod +x .claude/bin/test_exec.sh
+.claude/bin/test_exec.sh "<scope>"
+```
+
+> 可选 smoke：`.claude/bin/test_exec.sh "all" -- --help`
 
 ## 测试范围
 
