@@ -7,16 +7,16 @@ schema_version: v2
 # 3) 不要把长日志写进 Dashboard；完整日志放到 `.claude/state/logs/`。
 session_info:
   id: "session-3D52E2C0-8C57-41FF-AC5A-B1C74DC767AE"
-  goal: "构建一个轻量级任务管理系统（用户/JWT/项目/任务/搜索过滤/Web UI/REST API/OpenAPI/测试/CI/Docker）"
+  goal: "构建轻量级任务管理系统（Vue + Express + SQLite；JWT 用户/项目/任务/过滤搜索/UI/API/OpenAPI/测试/CI/Docker）"
 
   # Status vs Phase（避免把“阶段”与“运行态”混在一起）
   # - status: 运行态（是否在跑、是否阻塞、是否完成）
   # - phase: 工作流阶段（在做什么类型的工作）
-  status: "RUNNING" # IDLE | RUNNING | BLOCKED | COMPLETED
+  status: "BLOCKED" # IDLE | RUNNING | BLOCKED | COMPLETED
   phase: "PLAN" # CLARIFY | PLAN | EXECUTE | VERIFY | REVIEW | DONE
 
   started_at: "2026-01-05 04:18:17"
-  last_updated: "2026-01-05 04:27:44"
+  last_updated: "2026-01-05 04:31:41"
 
   # 可选上下文（尽量填，有助于人类/LLM定位）
   owner: "User"
@@ -25,7 +25,7 @@ session_info:
 
   # 需求治理（建议在 /plan 阶段填充）
   assumptions:
-    - "默认技术栈：后端 Node.js Express + SQLite；前端 React（如需可换 Flask/Vue/PostgreSQL）"
+    - "技术栈确认：前端 Vue；后端 Express；数据库 SQLite"
     - "登录仅支持用户名/密码；不做第三方 OAuth"
     - "任务拖拽排序为可选项（默认不做）"
   non_goals:
@@ -40,10 +40,14 @@ session_info:
 
   # 控制信号：给主 agent 的“下一步”与“阻塞”输入（保持短小，每项 <= 3）
   next_actions:
-    - {id: NA1, owner: User, action: "确认技术栈：React vs Vue；Express vs Flask；SQLite vs PostgreSQL"}
-    - {id: NA2, owner: User, action: "确认是否要实现任务拖拽排序（可选项）"}
-    - {id: NA3, owner: User, action: "鉴权/JWT 属于高风险：确认执行前是否需要 /approve"}
-  blockers: []
+    - {id: NA1, owner: User, action: "请运行 `/approve`：允许实现 JWT 鉴权/密码哈希/用户体系（安全敏感）"}
+    - {id: NA2, owner: User, action: "确认是否要实现任务拖拽排序（可选项，默认不做）"}
+    - {id: NA3, owner: Supervisor, action: "批准后启动执行：使用 `.claude/bin/swe_exec.sh` 走 CLI 子 agent 全流程"}
+  blockers:
+    - id: B1
+      owner: "User"
+      description: "JWT/鉴权/密码存储属于安全敏感实现，按仓库规则需先 /approve"
+      needed_to_unblock: "用户输入 `/approve` 并明确批准 scope：auth/JWT/password hashing"
 
 acceptance_criteria:
   items:
@@ -63,7 +67,7 @@ dag:
     - id: T1
       name: "Clarify 技术栈与范围（含 Non-goals）"
       agent: "Supervisor"
-      status: "PENDING"
+      status: "DONE"
       risk: "Low"
       artifacts: ["DASHBOARD.md"]
       verify: "User confirms stack + optional drag&drop + /approve policy"
@@ -202,6 +206,12 @@ events:
       ref: "DASHBOARD.md"
       summary: "Planned lightweight task management system DAG"
       evidence_ids: []
+    - time: "2026-01-05 04:31:41"
+      type: "CLARIFY"
+      actor: "User"
+      ref: "/swe"
+      summary: "Confirmed stack: Vue + Express + SQLite"
+      evidence_ids: []
 
 artifacts:
   root: ".claude/state"
@@ -209,7 +219,7 @@ artifacts:
   evidence_dir: ".claude/state/evidence"
   attachments_dir: ".claude/state/attachments"
 
-last_updated: "2026-01-05 04:27:44" # mirror of session_info.last_updated
+last_updated: "2026-01-05 04:31:41" # mirror of session_info.last_updated
 ---
 
 # Multi-Agent SWE Dashboard
