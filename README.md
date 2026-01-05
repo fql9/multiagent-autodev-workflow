@@ -55,6 +55,9 @@
    - /exit              -> 退出框架模式
    ```
 
+> 注意：`.cursorrules` 的 Commands Map 只是“行为约束说明”，不会自动出现在 UI 的命令面板里。  
+> 你在 Cursor/Claude Code 里能看到的 `/status /plan /swe ...` 命令卡片，来自 `.claude/commands/*.md`。
+
 ### 第二步：检查状态
 
 在 Cursor 的 Chat 面板中输入：

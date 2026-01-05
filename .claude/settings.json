@@ -11,6 +11,7 @@
       "Bash(claude:*)",
       "Bash(.claude/bin/call_subagent.sh:*)",
       "Bash(.claude/bin/swe_exec.sh:*)",
+      "Bash(.claude/bin/reset_dashboard.sh:*)",
       "Bash(git status)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
