@@ -242,6 +242,12 @@ refactor:
 | `/review [目标]` | 代码审查 |
 | `/status` | 查看当前状态 |
 | `/exit` | 退出框架模式 |
+| `/subagent` | 通过 Bash + Claude Code CLI 调用子 agent（生成 EV 证据） |
+
+---
+
+## ✅ C 方案执行约束（重要）
+除 **规划（/plan）** 外，执行阶段的工作（实现 / 测试 / 审查）必须通过 **Bash → Claude Code CLI (`claude`)** 调用子 agent 完成，并在 `DASHBOARD.md` 里记录 EV 证据链；主控节点只做调度、状态更新和证据归档。
 
 ---
 

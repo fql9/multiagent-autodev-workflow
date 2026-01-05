@@ -28,6 +28,16 @@ alwaysApply: true
 - 明确期望的输出格式
 - 等待任务完成后验证结果
 
+### 3.1 C 方案强制：除规划外，全部通过 Bash + Claude Code CLI
+为保证“可核查、可追溯”，除 **规划（/plan, DAG 生成）** 外的工作必须满足：
+- **实现 / 测试 / 审查** 必须通过 Bash 调用 `claude` CLI 子 agent 完成
+- 主控节点（Cursor）不得直接“手写实现代码/手写测试实现/手写审查结论”
+- 每次 CLI 调用必须产出 Evidence（EV-ID），并在 `DASHBOARD.md` 中引用
+
+推荐工具：
+- `.claude/bin/call_subagent.sh`（单次调用 + 生成 EV）
+- `.claude/bin/swe_exec.sh`（串行执行 repo-scout→architect→implementer→tester→reviewer）
+
 ### 4. 验证与审查
 代码变更必须经过：
 - 静态检查（lint/typecheck）

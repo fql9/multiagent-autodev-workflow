@@ -161,6 +161,10 @@ claude --version
 - `.claude/state/logs/<EV_ID>.out.txt` / `.err.txt` / `.cmd.txt`
 - `.claude/state/audit.log`
 
+### /swe 的执行策略（推荐）
+- `/plan`：由主控节点生成 DAG（规划）
+- `/swe` 的执行阶段（实现/测试/审查）：建议使用 `.claude/bin/swe_exec.sh` 统一通过 **Bash → `claude` CLI 子 agent** 执行，并把 EV-ID 回填到 Dashboard
+
 ---
 
 ## 工作流示例

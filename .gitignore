@@ -14,6 +14,12 @@
 .claude/state/logs/*
 !.claude/state/logs/.gitkeep
 
+# attachments: keep directory markers, ignore generated prompts
+!.claude/state/attachments/
+.claude/state/attachments/*
+!.claude/state/attachments/.gitkeep
+.claude/state/attachments/*/*
+
 
 
 prompts/
